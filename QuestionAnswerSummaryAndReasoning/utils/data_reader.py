@@ -48,7 +48,7 @@ def build_vocab(items, sort=True, min_count=0, lower=False):
                 i = i if not lower else item.lower()  # 如果是英文，全部转换成小写
                 dic[i] += 1
         # sort
-        dic = sorted(dic.items(), key=lambda x: (x[1],x[0]), reverse=True)
+        dic = sorted(dic.items(), key=lambda x: x[1], reverse=True)
 
         for i, item in enumerate(dic):
             key = item[0]
