@@ -19,7 +19,7 @@ def segment(sentence, cut_type='word', pos=False):
     切词
     :param sentence:
     :param cut_type: 'word' use jieba.lcut; 'char' use list(sentence)
-    :param pos: enable POS
+    :param pos: enable POS (词性标注)
     :return: list
     """
     if pos:

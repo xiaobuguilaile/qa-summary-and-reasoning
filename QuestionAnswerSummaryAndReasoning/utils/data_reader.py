@@ -39,42 +39,58 @@ def build_vocab(items, sort=True, min_count=0, lower=False):
     """
     result = []
     if sort:
-        # sort by count
+        # sort by word count
         dic = defaultdict(int)
         for item in items:
             for i in item.split(" "):
-                i = i.strip()
+                i = i.strip()  # 除去每个词前后的中的空格
                 if not i: continue
-                i = i if not lower else item.lower()
+                i = i if not lower else item.lower()  # 如果是英文，全部转换成小写
                 dic[i] += 1
         # sort
-        """
-        按照字典里的词频进行排序，出现次数多的排在前面
-        your code(one line)
-        """
+        dic = sorted(dic.items(), key=lambda x: (x[1],x[0]), reverse=True)
+
         for i, item in enumerate(dic):
             key = item[0]
             if min_count and min_count > item[1]:
                 continue
             result.append(key)
     else:
-        # sort by items
         for i, item in enumerate(items):
             item = item if not lower else item.lower()
             result.append(item)
     """
     建立项目的vocab和reverse_vocab，vocab的结构是（词，index）
-    your code
-    vocab = (one line)
-    reverse_vocab = (one line)
     """
+    vocab = [(w, i) for i, w in enumerate(result)]
+    reverse_vocab = vocab[::-1]
 
     return vocab, reverse_vocab
 
 
 if __name__ == '__main__':
-    lines = read_data('{}/datasets/train_set.seg_x.txt'.format(BASE_DIR),
-                      '{}/datasets/train_set.seg_y.txt'.format(BASE_DIR),
-                      '{}/datasets/test_set.seg_x.txt'.format(BASE_DIR))
+    lines = read_data('{}/data/train_set.seg_x.txt'.format(BASE_DIR),
+                      '{}/data/train_set.seg_y.txt'.format(BASE_DIR),
+                      '{}/data/test_set.seg_x.txt'.format(BASE_DIR))
     vocab, reverse_vocab = build_vocab(lines)
-    save_word_dict(vocab, '{}/datasets/vocab.txt'.format(BASE_DIR))
+    save_word_dict(vocab, '{}/data/vocab.txt'.format(BASE_DIR))
+
+
+    # key_value = {}
+    # key_value[2] = 56
+    # key_value[1] = 2
+    # key_value[5] = 12
+    # key_value[4] = 24
+    # key_value[6] = 18
+    # key_value[3] = 323
+    # print(key_value)
+    # key_value = sorted(key_value.items(), key=lambda kv: (kv[1], kv[0]), reverse=True)
+    # print("按值(value)排序:")
+    # print(key_value)
+
+    # result = ['张三', '王五','等六']
+    # vocab = [(w, i) for i, w in enumerate(result)]
+    # reverse_vocab = vocab[::-1]
+    #
+    # print(vocab)
+    # print(reverse_vocab)

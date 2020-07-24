@@ -44,9 +44,8 @@ def build(train_x_seg_path, test_y_seg_path, test_seg_path, out_path=None, sente
     # train model
     """
     通过gensim工具完成word2vec的训练，输入格式采用sentences，使用skip-gram，embedding维度256
-    your code
-    w2v = （one line）
     """
+    w2v = Word2Vec(sg=1, sentences=LineSentence(sentence_path), size=256, window=5, min_count=min_count, iter=40)
     w2v.wv.save_word2vec_format(w2v_bin_path, binary=True)
     print("save %s ok." % w2v_bin_path)
     # test
@@ -61,9 +60,9 @@ def build(train_x_seg_path, test_y_seg_path, test_seg_path, out_path=None, sente
 
 
 if __name__ == '__main__':
-    build('{}/datasets/train_set.seg_x.txt'.format(BASE_DIR),
-          '{}/datasets/train_set.seg_y.txt'.format(BASE_DIR),
-          '{}/datasets/test_set.seg_x.txt'.format(BASE_DIR),
-          out_path='{}/datasets/word2vec.txt'.format(BASE_DIR),
-          sentence_path='{}/datasets/sentences.txt'.format(BASE_DIR))
+    build('{}/data/train_set.seg_x.txt'.format(BASE_DIR),
+          '{}/data/train_set.seg_y.txt'.format(BASE_DIR),
+          '{}/data/test_set.seg_x.txt'.format(BASE_DIR),
+          out_path='{}/data/word2vec.txt'.format(BASE_DIR),
+          sentence_path='{}/data/sentences.txt'.format(BASE_DIR))
 
