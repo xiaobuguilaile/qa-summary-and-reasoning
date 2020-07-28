@@ -138,4 +138,7 @@ Lesson/
 test.py
 
 # log
-QuestionAnswerSummaryAndReasoning/seq2seq_tf2/log/
+seq2seq_tf2/log/
+
+# checkpoints
+ckpt/

@@ -105,9 +105,9 @@ def main():
 
 if __name__ == '__main__':
 
-    logger.add("../log/seq2seq_tf2_training_{time}.log",
+    logger.add(BASE_DIR + "/seq2seq_tf2/log/seq2seq_tf2_training_{time}.log",
                format="{time} {level} {message}",
                level="INFO",
-               rotation="100 M")
+               rotation="100 MB")
 
     main()
