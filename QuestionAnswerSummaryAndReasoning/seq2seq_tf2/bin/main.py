@@ -17,6 +17,7 @@ from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.train_eval_test import train,
 from QuestionAnswerSummaryAndReasoning.utils.data_utils import get_result_filename
 # from utils.log_utils import define_logger
 import pathlib
+from loguru import logger
 
 NUM_SAMPLES = 82706
 
@@ -82,6 +83,7 @@ def main():
     parser.add_argument("--model", default='SequenceToSequence', help="which model to be slected")
     parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")
 
+    logger.info("Arguments set done!")
     args = parser.parse_args()
     params = vars(args)
 
@@ -102,4 +104,10 @@ def main():
 
 
 if __name__ == '__main__':
+
+    logger.add("../log/seq2seq_tf2_training_{time}.log",
+               format="{time} {level} {message}",
+               level="INFO",
+               rotation="100 M")
+
     main()

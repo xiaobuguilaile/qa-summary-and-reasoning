@@ -17,6 +17,7 @@ from QuestionAnswerSummaryAndReasoning.utils import get_result_filename
 import pandas as pd
 from rouge import Rouge
 import pprint
+from loguru import logger
 
 
 def train(params):
@@ -24,15 +25,19 @@ def train(params):
     assert params['mode'].lower() == "train", "change training mode to train"
 
     vocab = Vocab(vocab_file=params["vocab_path"], max_size=params['vocab_size'])
-    print("true vocab is ", vocab)
+    # print("true vocab is ", vocab)
+    logger.info("true vocab is {}".format(vocab))
 
-    print("Creating the batcher ...")
+    # print("Creating the batcher ...")
+    logger.info("Creating the batcher ...")
     b = batcher(vocab, params)
 
-    print("Building the model ... ")
+    # print("Building the model ... ")
+    logger.info("Building the model ... ")
     s2s_model = SequenceToSequence(params)
 
-    print("Creating the checkpoint manager")
+    # print("Creating the checkpoint manager")
+    logger.info("Creating the checkpoint manager")
     checkpoint_dir = "{}/checkpoint".format(params["seq2seq_model_dir"])
     ckpt = tf.train.Checkpoint(SequenceToSequence=s2s_model)
     ckpt_manager = tf.train.CheckpointManager(checkpoint=ckpt,
@@ -42,11 +47,13 @@ def train(params):
     ckpt.restore(ckpt_manager.latest_checkpoint)  # 恢复最后1次的checkpoints结果
 
     if ckpt_manager.latest_checkpoint:
-        print("Restored from {}".format(ckpt_manager.latest_checkpoint))
+        # print("Restored from {}".format(ckpt_manager.latest_checkpoint))
+        logger.info("Restored from {}".format(ckpt_manager.latest_checkpoint))
     else:
-        print("Initializing from scratch. ")
+        # print("Initializing from scratch. ")
+        logger.info("Initializing from scratch. ")
 
-    print("Starting the training ... ")
+    logger.info("Starting the training ... ")
     train_model(s2s_model, b, params, ckpt, ckpt_manager)
 
 
@@ -54,16 +61,20 @@ def test(params):
     assert params["mode"].lower() == "test", "change training mode to 'test' or 'eval'"
     # assert params["beam_size"] == params["batch_size"], "Beam size must be equal to batch_size, change the params"
 
-    print("Building the model ...")
+    # print("Building the model ...")
+    logger.info("Building the model ...")
     s2s_model = SequenceToSequence(params)
 
-    print("Creating the vocab ...")
+    # print("Creating the vocab ...")
+    logger.info("Creating the vocab ...")
     vocab = Vocab(params["vocab_path"], params["vocab_size"])
 
-    print("Creating the batcher ...")
+    # print("Creating the batcher ...")
+    logger.info("Creating the batcher ...")
     b = batcher(vocab, params)
 
-    print("Creating the checkpoint manager")
+    # print("Creating the checkpoint manager")
+    logger.info("Creating the checkpoint manager")
     checkpoint_dir = "{}/checkpoint".format(params["seq2seq_model_dir"])
     ckpt = tf.train.Checkpoint(SequenceToSequence=s2s_model)
     ckpt_manager = tf.train.CheckpointManager(checkpoint=ckpt,
@@ -73,7 +84,8 @@ def test(params):
     # path = params["model_path"] if params["model_path"] else ckpt_manager.latest_checkpoint
     # path = ckpt_manager.latest_checkpoint
     ckpt.restore(ckpt_manager.latest_checkpoint)
-    print("Model restored")
+    # print("Model restored")
+    logger.info("Model restored")
     # for batch in b:
     #     yield batch_greedy_decode(model, batch, vocab, params)
     if params['greedy_decode']:

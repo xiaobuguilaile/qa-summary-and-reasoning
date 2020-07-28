@@ -9,6 +9,8 @@
 
 import tensorflow as tf
 import time
+from loguru import logger
+
 
 STRAT_DECODING = '[START]'
 
@@ -75,16 +77,20 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
             step += 1
             total_loss += loss
             if step % 100 == 0:
-                print('Epoch {} Batch {} Loss {:.4f}'.format(epoch+1, step, total_loss/step))
+                # print('Epoch {} Batch {} Loss {:.4f}'.format(epoch+1, step, total_loss/step))
                 # print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1, step, loss.numpy()))
+                logger.info('Epoch {} Batch {} Loss {:.4f}'.format(epoch+1, step, total_loss/step))
 
         if epoch % 1 == 0:
             if total_loss / step < best_loss:
                 best_loss = total_loss / step
                 ckpt_save_path = ckpt_manager.save()
-                print('Saving checkpoint for epoch {} at {} ,best loss {}'.format(epoch + 1, ckpt_save_path, best_loss))
-                print('Epoch {} Loss {:.4f}'.format(epoch + 1, total_loss / step))
-                print('Time taken for 1 epoch {} sec\n'.format(time.time() - t0))
+                # print('Saving checkpoint for epoch {} at {} ,best loss {}'.format(epoch + 1, ckpt_save_path, best_loss))
+                # print('Epoch {} Loss {:.4f}'.format(epoch + 1, total_loss / step))
+                # print('Time taken for 1 epoch {} sec\n'.format(time.time() - t0))
+                logger.info('Saving checkpoint for epoch {} at {} ,best loss {}'.format(epoch + 1, ckpt_save_path, best_loss))
+                logger.info('Epoch {} Loss {:.4f}'.format(epoch + 1, total_loss / step))
+                logger.info('Time taken for 1 epoch {} sec\n'.format(time.time() - t0))
 
 
 if __name__ == '__main__':

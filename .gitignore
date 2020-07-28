@@ -136,3 +136,6 @@ Lesson/
 
 # test
 test.py
+
+# log
+QuestionAnswerSummaryAndReasoning/seq2seq_tf2/log/
