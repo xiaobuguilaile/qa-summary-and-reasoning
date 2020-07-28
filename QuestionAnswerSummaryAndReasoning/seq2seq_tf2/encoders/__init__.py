@@ -6,3 +6,5 @@
 @Date       : 2020/7/27
 @Desc       :
 '''
+
+from .rnn_encoder import Encoder
