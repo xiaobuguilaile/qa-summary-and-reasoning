@@ -20,15 +20,15 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
     #                                         initial_accumulator_value=params['adagrad_init_acc'],
     #                                         clipnorm=params['max_grad_norm'])
     optimizer = tf.keras.optimizers.Adam(name='Adam', learning_rate=params['learning_rate'])
+
     # from_logits = True: preds is model output before passing it into softmax (so we pass it into softmax)
     # from_logits = False: preds is model output after passing it into softmax (so we skip this step)
-
-    # 要看模型在decoder最后输出是否经过softmax
+    # 要看模型在decoder最后输出是否经过softmax, from_logits = False表示preds已经经过了softmax，所以这里就可以跳过softmax()
     loss_object = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction='none')
 
     # 定义损失函数
     def loss_function(real, pred):
-        # 逻辑取非 True和False对调 eg.[[[True, Flase...],[]]
+        # 逻辑取非 True和False对调 eg.[[[True, Flase, Falss...],[]] => [[[Flase, True, True...],[]]
         mask = tf.math.logical_not(tf.math.equal(real, 1))
         dec_lens = tf.reduce_sum(tf.cast(mask, dtype=tf.float32), axis=1)  # 沿 axix=1求和
 
@@ -43,7 +43,7 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
 
     # @tf.function()
     def train_step(enc_inp, dec_tar, dec_inp):
-        # loss=0
+        # GradientTape 默认只监控由 tf.Variable创建的traiable=True属性（默认）的变量。
         with tf.GradientTape() as tape:
             enc_output, enc_hidden = seq2seq_model.call_encoder(enc_inp)
             dec_hidden = enc_hidden
@@ -55,14 +55,15 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
             loss = loss_function(dec_tar, pred)
 
         # variables = model.trainable_variables
-        variables = seq2seq_model.trainable_variables + seq2seq_model.attention.trainable_variables + seq2seq_model.decoder.trainable_variables
-        gradients = tape.gradient(loss, variables)
+        variables = seq2seq_model.encoder.trainable_variables + seq2seq_model.attention.trainable_variables + \
+                    seq2seq_model.decoder.trainable_variables
+        gradients = tape.gradient(loss, variables)  # tape接收偶需要计算梯度的值
         optimizer.apply_gradients(zip(gradients, variables))
 
         return loss
 
     best_loss = 20
-    epochs = params['epochs']
+    epochs = params['epochs']  # 20
     for epoch in range(epochs):
         t0 = time.time()
         step = 0
@@ -94,6 +95,4 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
 
 
 if __name__ == '__main__':
-    # real = 0
-    # print(tf.math.equal(real, 1))
     pass

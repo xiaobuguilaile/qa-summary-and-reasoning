@@ -56,6 +56,8 @@ def train(params):
     logger.info("Starting the training ... ")
     train_model(s2s_model, b, params, ckpt, ckpt_manager)
 
+    s2s_model.fit()
+
 
 def test(params):
     assert params["mode"].lower() == "test", "change training mode to 'test' or 'eval'"
