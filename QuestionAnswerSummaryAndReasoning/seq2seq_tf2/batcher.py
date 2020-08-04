@@ -11,7 +11,7 @@ START_DECODING = '[START]'  # Decode起始符
 STOP_DECODING = '[STOP]'   # Decode终止符
 
 
-class Vocab:
+class Vocab(object):
 
     def __init__(self, vocab_file, max_size):  # max_size: vocab_size词数限定值
         self.word2id = {UNKNOWN_TOKEN: 0, PAD_TOKEN: 1, START_DECODING: 2, STOP_DECODING: 3}
@@ -174,7 +174,7 @@ def example_generator(vocab, train_x_path, train_y_path, test_x_path, max_enc_le
 
             article_words = article.split()[:max_enc_len]
             enc_len = len(article_words)
-            # 添加mark标记
+            # 添加mask标记
             sample_encoder_pad_mask = [1 for _ in range(enc_len)]
 
             enc_input = [vocab.word_to_id(w) for w in article_words]
@@ -324,6 +324,7 @@ def batch_generator(generator, vocab, train_x_path, train_y_path,
 
 
 def batcher(vocab, hpm):
+    """ 输出一个batch的数据集 """
     dataset = batch_generator(example_generator, vocab, hpm["train_seg_x_dir"], hpm["train_seg_y_dir"],
                               hpm["test_seg_x_dir"], hpm["max_enc_len"],
                               hpm["max_dec_len"], hpm["batch_size"], hpm["mode"])

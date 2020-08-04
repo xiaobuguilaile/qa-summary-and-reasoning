@@ -11,7 +11,7 @@ import tensorflow as tf
 from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.models.sequence_to_sequence import SequenceToSequence
 from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.batcher import batcher, Vocab
 from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.train_helper import train_model
-# from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.test_helper import beam_decode, greedy_decode
+from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.test_helper import beam_decode, greedy_decode
 from tqdm import tqdm
 from QuestionAnswerSummaryAndReasoning.utils import get_result_filename
 import pandas as pd
@@ -21,6 +21,7 @@ from loguru import logger
 
 
 def train(params):
+    """ 将参数 mode 修改为 train, 开始训练 """
 
     assert params['mode'].lower() == "train", "change training mode to train"
 
@@ -30,7 +31,7 @@ def train(params):
 
     # print("Creating the batcher ...")
     logger.info("Creating the batcher ...")
-    b = batcher(vocab, params)
+    batch_data = batcher(vocab, params)  # 生成一个batch的数据
 
     # print("Building the model ... ")
     logger.info("Building the model ... ")
@@ -42,7 +43,7 @@ def train(params):
     ckpt = tf.train.Checkpoint(SequenceToSequence=s2s_model)
     ckpt_manager = tf.train.CheckpointManager(checkpoint=ckpt,
                                               directory=checkpoint_dir,
-                                              max_to_keep=5) # the number of checkpoints to keep
+                                              max_to_keep=5)  # the number of checkpoints to keep
 
     ckpt.restore(ckpt_manager.latest_checkpoint)  # 恢复最后1次的checkpoints结果
 
@@ -54,12 +55,14 @@ def train(params):
         logger.info("Initializing from scratch. ")
 
     logger.info("Starting the training ... ")
-    train_model(s2s_model, b, params, ckpt, ckpt_manager)
+    train_model(s2s_model, batch_data, params, ckpt, ckpt_manager)
 
-    s2s_model.fit()
+    s2s_model.fit()  # 开始用数据训练模型...
 
 
 def test(params):
+    """ 将 mode修改为 test, 开始测试 """
+
     assert params["mode"].lower() == "test", "change training mode to 'test' or 'eval'"
     # assert params["beam_size"] == params["batch_size"], "Beam size must be equal to batch_size, change the params"
 
@@ -73,7 +76,7 @@ def test(params):
 
     # print("Creating the batcher ...")
     logger.info("Creating the batcher ...")
-    b = batcher(vocab, params)
+    batch_data = batcher(vocab, params)
 
     # print("Creating the checkpoint manager")
     logger.info("Creating the checkpoint manager")
@@ -88,11 +91,21 @@ def test(params):
     ckpt.restore(ckpt_manager.latest_checkpoint)
     # print("Model restored")
     logger.info("Model restored")
-    # for batch in b:
+    # for batch in batch_data:
     #     yield batch_greedy_decode(model, batch, vocab, params)
     if params['greedy_decode']:
         # params['batch_size'] = 512
         predict_result(s2s_model, params, vocab, params['test_save_dir'])
+
+
+def predict_result(model, params, vocab, result_save_path):
+    """ 通过 greedy_deocde 预测test结果 """
+    dataset = batcher(vocab, params)
+    # 预测结果
+    results = greedy_decode(model, dataset, vocab, params)
+    results = list(map(lambda x: x.replace(" ", ""), results))
+    # 保存结果
+    save_predict_result(results, params)
 
 
 def save_predict_result(results, params):
@@ -108,6 +121,8 @@ def save_predict_result(results, params):
 
 
 def test_and_save(params):
+    """ 将测试结果保存到指定位置 """
+    # test_save_dir = '{}/data/' (default)
     assert params["test_save_dir"], "provide a dir where to save the results"
     gen = test(params)
     with tqdm(total=params["num_to_test"], position=0, leave=True) as pbar:

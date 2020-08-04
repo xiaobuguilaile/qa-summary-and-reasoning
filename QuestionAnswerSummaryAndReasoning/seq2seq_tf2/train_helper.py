@@ -16,6 +16,8 @@ STRAT_DECODING = '[START]'
 
 
 def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
+    """ 模型训练 """
+
     # optimizer = tf.keras.optimizers.Adagrad(learning_rate=params['learning_rate'],
     #                                         initial_accumulator_value=params['adagrad_init_acc'],
     #                                         clipnorm=params['max_grad_norm'])
@@ -32,8 +34,8 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
         mask = tf.math.logical_not(tf.math.equal(real, 1))
         dec_lens = tf.reduce_sum(tf.cast(mask, dtype=tf.float32), axis=1)  # 沿 axix=1求和
 
-        loss_ = loss_object(real, pred)
-        mask = tf.cast(mask, dtype=loss_.dtype)
+        loss_ = loss_object(real, pred)  # 定义loss对象
+        mask = tf.cast(mask, dtype=loss_.dtype)  # 将mask转换为loss_的数据类型
         loss_ *= mask
         loss_ = tf.reduce_sum(input_tensor=loss_, axis=1) / dec_lens
 
@@ -57,7 +59,7 @@ def train_model(seq2seq_model, dataset, params, ckpt, ckpt_manager):
         # variables = model.trainable_variables
         variables = seq2seq_model.encoder.trainable_variables + seq2seq_model.attention.trainable_variables + \
                     seq2seq_model.decoder.trainable_variables
-        gradients = tape.gradient(loss, variables)  # tape接收偶需要计算梯度的值
+        gradients = tape.gradient(loss, variables)  # tape接收需要计算梯度的变量
         optimizer.apply_gradients(zip(gradients, variables))
 
         return loss

@@ -39,7 +39,7 @@ def main():
     parser.add_argument("--beam_size", default=3,
                         help="beam size for beam search decoding (must be equal to batch size in decode mode)",
                         type=int)
-    parser.add_argument("--vocab_size", default=30000, help="Vocabulary size", type=int)
+    parser.add_argument("--vocab_size", default=30000, help="Vocabulary size", type=int)   # 次数上限，一般取30000 或 50000
     parser.add_argument("--embed_size", default=256, help="Words embeddings dimension", type=int)
     parser.add_argument("--enc_units", default=256, help="Encoder GRU cell units number", type=int)
     parser.add_argument("--dec_units", default=256, help="Decoder GRU cell units number", type=int)
@@ -79,7 +79,8 @@ def main():
     parser.add_argument("--max_num_to_eval", default=5, help="max_num_to_eval", type=int)
     parser.add_argument("--epochs", default=20, help="train epochs", type=int)
     # mode
-    parser.add_argument("--mode", default='train', help="training, eval or test options")
+    # parser.add_argument("--mode", default='train', help="training, eval or test options")  # 训练 train
+    parser.add_argument("--mode", default='test', help="training, eval or test options")  # 测试 test
     parser.add_argument("--model", default='SequenceToSequence', help="which model to be slected")
     parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")
 

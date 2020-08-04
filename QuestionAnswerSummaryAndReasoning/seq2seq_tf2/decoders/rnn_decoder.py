@@ -51,7 +51,7 @@ class Decoder(tf.keras.layers.Layer):
 
     def __init__(self, vocab_size, embedding_dim, dec_units, batch_sz, embedding_matrix):
         """
-        vocab_size: 词表的词数
+        vocab_size: 词表的词数（对应params['vocab_size']）, 一般取 30000 or 50000
         embedding_dim: 词向量维度，256
         dec_units: decoder层的单位数
         batch_size: 每批次的样本数
@@ -93,7 +93,9 @@ class Decoder(tf.keras.layers.Layer):
         # x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
 
         # passing the concatenated vector x to GRU
-        output, state = self.gru(x)
+        # 注意：因为tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False, reduction='none')，
+        # from_logits = False表示preds已经经过了softmax
+        output, state = self.gru(x)  # 所以这里的 output，是经过 softmax()后的结果
         # output shape == (batch_size * 1, hidden_size)
         output = tf.reshape(tensor=output, shape=(-1, output.shape[2]))
         # output = self.dropout(output)

@@ -34,9 +34,9 @@ class Encoder(tf.keras.layers.Layer):
         self.gru = tf.keras.layers.GRU(units=self.enc_units,
                                        return_sequences=True,
                                        return_state=True,
-                                       recurrent_initializer='glorot_uniform')
+                                       recurrent_initializer='glorot_uniform')  # 神经网络参数初始化：基于方差的初始化，适合激活函数为tanh()
         # 定义双向 GRU（或LSTM）
-        self.bigru = tf.keras.layers.Bidirectional(layer=self.gru, merge_mode='concat')
+        self.bigru = tf.keras.layers.Bidirectional(layer=self.gru, merge_mode='concat')  # merge_mode 拼接方式为直接拼接
 
     def call(self, input_x, hidden):
         """
