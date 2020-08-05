@@ -87,36 +87,27 @@ def batch_greedy_decode(model, enc_data, vocab, params):
 
 
 class Hypothesis(object):
-
     """
     Class designed to hold hypothesises throughout the beam_search decoding
     到时刻T，有N种可能（假设），每种假设计算从time=0到time=T时刻, 所有tokens的概率的对数和。
     后面会根据概率大小选出beam_size个最大的 "可能"
     """
-
     def __init__(self, tokens, log_probs, state, attn_dists, prob_gens):
-        # list of all the tokens from Time_0 to the Current_time_step t
-        self.tokens = tokens
-        # list of the log_probabilities of the tokens
-        self.log_probs = log_probs  # 所有tokens的对数和
-        # decoder state after the last token decoding
-        self.state = state
-        # attention dists of all the tokens
-        self.attn_dists = attn_dists
-        # generation probability of all the tokens
-        self.prob_gens = prob_gens
+
+        self.tokens = tokens  # list of all the tokens from Time_0 to the Current_time_step t
+        self.log_probs = log_probs  # list of the log_probabilities of the tokens 所有tokens的对数和
+        self.state = state  # decoder state after the last token decoding
+        self.attn_dists = attn_dists  # attention dists of all the tokens
+        self.prob_gens = prob_gens  # generation probability of all the tokens
 
     def extend(self, token, log_prob, state, attn_dist, prob_gen):
-        """
-        Method to extend the current hypothesis by adding the next decoded token
-        and all the information associated with it
-        """
+        """ Method to extend the current hypothesis by adding next decoded token and all information associated """
         # 将新产生的decoded结果加到相应的列表中
         return Hypothesis(tokens=self.tokens + [token],  # add decoded token
-                          log_probs=self.log_probs + [log_prob],  # add log prob of the decoded token
-                          state=state,  # update the state
-                          attn_dists=self.attn_dists + [attn_dist],  # add attn dist of the decoded token
-                          prob_gens=self.prob_gens + [prob_gen])  # add the prob_gen of decoded token
+                          log_probs=self.log_probs + [log_prob],  # add log_prob of the decoded token
+                          state=state,  # update the state, 状态值不需要累加，更新传递即可
+                          attn_dists=self.attn_dists + [attn_dist],  # add_attn dist of the decoded token
+                          prob_gens=self.prob_gens + [prob_gen])  # add prob_gen of the decoded token
 
     @property
     def latest_token(self):
@@ -137,20 +128,18 @@ def beam_decode(model, batch, vocab, params):
     def decode_onestep(enc_input, enc_outputs, dec_input, dec_state, enc_extended_inp,
                        batch_oov_len, enc_pad_mask, use_coverage, prev_coverage):
         """
+        单步 decoder, 目的是为了得到一步 decode 的 top_k 的中间结果
         Method to decode the output step by step (used for beamSearch decoding)
         Args:
-            sess : tf.Session object
-            batch : current batch, shape = [beam_size, 1, vocab_size( + max_oov_len if pointer_gen)]
-            (for the beam search decoding, batch_size = beam_size)
-            enc_outputs : hiddens outputs computed by the encoder BiLSTM
-            dec_state : beam_size-many list of decoder previous state, LSTMStateTuple objects,
-            shape = [beam_size, 2, hidden_size]
+            batch : current batch, shape = [beam_size, 1, vocab_size( + max_oov_len if pointer_gen)] (for the beam search decoding, batch_size = beam_size)
+            enc_outputs : hiddens outputs computed by the encoder BiGRU
             dec_input : decoder_input, the previous decoded batch_size-many words, shape = [beam_size, embed_size]
-            cov_vec : beam_size-many list of previous coverage vector
+            dec_state : beam_size-many list of decoder previous state, GRUStateTuple objects, shape = [beam_size, 2, hidden_size]
+            prev_coverage : beam_size-many list of previous coverage vector
         Returns: A dictionary of the results of all the ops computations (see below for more details)
         """
-        # beam_size=3, embedding_size=256
-        final_dists, dec_hidden, attentions, prob_gens = model(enc_outputs,  # shape=(3, 115, 256)
+        # seq2seq模型, beam_size=3, embedding_size=256
+        preds, dec_hidden, attentions, prob_gens = model(enc_outputs,  # shape=(3, 115, 256)
                                                                dec_state,  # shape=(3, 256)
                                                                enc_input,  # shape=(3, 115)
                                                                enc_extended_inp,  # shape=(3, 115)
@@ -160,12 +149,11 @@ def beam_decode(model, batch, vocab, params):
                                                                use_coverage,
                                                                prev_coverage)  # shape=(3, 115, 1)
 
-        top_k_probs, top_k_ids = tf.nn.top_k(input=tf.squeeze(final_dists),
-                                             k=params["beam_size"] * 2)
+        top_k_probs, top_k_ids = tf.nn.top_k(input=tf.squeeze(preds), k=params["beam_size"] * 2)
         # 对 top_k_probs 取 ln(以e为底), eg. [0.4, 0.3,0.1] => [-0.9162907 -1.2039728 -2.3025851]
         top_k_log_probs = tf.math.log(x=top_k_probs)
-
-        results = {"dec_state": dec_state,
+        # 返回需要保存的中间结果和概率
+        results = {"dec_state": dec_hidden,
                    "attention_vec": attentions,
                    "top_k_ids": top_k_ids,
                    "top_k_log_probs": top_k_log_probs,
@@ -173,13 +161,10 @@ def beam_decode(model, batch, vocab, params):
 
         return results
 
-    # end of the nested class
-    # We run the encoder once and then we use the results to decode each time step：
-    # token state shape=(3, 256), enc_outputs shape=(3, 115, 256)
+    # 计算 encoder的输出，作为decode的输入：token_state shape=(3, 256), enc_outputs shape=(3, 115, 256)
     enc_outputs, state = model.call_encoder(enc_input=batch[0]["enc_input"])
-    # print("enc_outputs is: ", enc_outputs)
 
-    # Initial Hypothesis (beam_size-many list) 初始化 beam_size个 Hypothesis对象
+    # 初始化 beam_size个 Hypothesis对象，长度为 beam_size (beam_size-many list)
     hyps = [Hypothesis(tokens=[vocab.word_to_id('[START]')],
                        log_probs=[0.0],
                        state=[0],
@@ -187,17 +172,18 @@ def beam_decode(model, batch, vocab, params):
                        attn_dists=[])
             for _ in range(params['beam_size'])]
 
-    results = []  # list to hold the top beam_size hypothesis
-    steps = 0  # initial step
+    results = []  # # 初始化结果集，就是最终结果 (the top beam_size hypothesis)
+    steps = 0  # 遍历的步数
     while steps < params["max_dec_steps"] and len(results) < params["beam_size"]:
+        # 获取最新待使用的 token，在第一步的时候就是[START]，单步的 hyps 一开始是 1
         latest_tokens = [h.latest_token for h in hyps]
-        # We replace all OOV by UNKNOWN token
+        # 用 UNKNOWN token替换所有的 OOV
         # latest_tokens = [t if t in vocab.id2word else vocab.word2id('[UNK]') for t in latest_tokens]
         latest_tokens = [t if t in range(params["voacb_size"]) else vocab.word_to_id('[UNK]') for t in latest_tokens]
-        # We collect the last states for each hypothesis
+        # 获取每个 hypothesis 的隐藏层状态
         states = [h.state for h in hyps]
-        dec_states = tf.stack(values=states, axis=0)  # 在axis=0出增加一个维度
-        # We decode the top-likely 2*beam_size tokens at step t for each hypothesis
+        dec_states = tf.stack(values=states, axis=0)  # 在 axis=0 增加一个维度
+        # 最新输入decode的 dec_input 就是最后面的 latest_tokens. We decode the top-likely 2*beam_size tokens at step t for each hypothesis
         dec_input = tf.expand_dims(input=latest_tokens, axis=1)  # shape: (3,0) => (3, 1)
 
         returns = decode_onestep(enc_input=batch[0]['enc_input'],  # shape=(3, 115)
@@ -213,43 +199,43 @@ def beam_decode(model, batch, vocab, params):
         topk_ids, topk_log_probs, new_states, attn_dists, prob_gens = \
             returns['top_k_ids'], returns['top_k_log_probs'], returns['dec_state'],  returns['attention_vec'], returns["prob_gens"]
 
-        all_hyps = []  # 用于接收所有新建的 hypothesis 对象
-        num = 1
-        num_orig_hyps = 1 if steps == 0 else len(hyps)
+        all_hyps = []  # 当前全部可能情况
+        num_orig_hyps = 1 if steps == 0 else len(hyps)  # 原有的可能情况数量
+
+        # 遍历添加所有可能结果，第一步的时候 num_orig_hyps 就是1
         for i in range(num_orig_hyps):
             # h, new_state, attn_dist, p_gen, coverage = hyps[i], new_states[i], attn_dists[i], p_gens[i], prev_coverages[i]
             h, new_state, attn_dist, prob_gen = hyps[i], new_states[i], attn_dists[i], prob_gens[i]
-            num += 1
             for j in range(params["beam_size"] * 2):
                 # we extend each hypothesis with each of the TOP_K tokens
                 # (this gives 2*beam_size new hypothesises for each of the beam_size old hypothesises)
-                new_hyp = h.extend(token=topk_ids[i,j],
-                                    log_prob=topk_log_probs[i,j],
-                                    state=new_state,
-                                    attn_dist=attn_dist,
-                                    prob_gen=prob_gen)
+                new_hyp = h.extend(token=topk_ids[i, j],
+                                   log_prob=topk_log_probs[i, j],
+                                   state=new_state,
+                                   attn_dist=attn_dist,
+                                   prob_gen=prob_gen)
                 all_hyps.append(new_hyp)
 
         # Then, we sort all the hypothesises, and select only the beam_size most likely hypothesises
         hyps = []
-        # 注意：排序用的是平均值
-        sorted_hyps = sorted(all_hyps, key=lambda h:h.avg_log_prob, reverse=True)
+        sorted_hyps = sorted(all_hyps, key=lambda h:h.avg_log_prob, reverse=True)  # 排序用的是平均值 avg_log_prob
         # 通过一次遍历，把不符合长度要求的 h 剔除
         for h in sorted_hyps:
             if h.latest_token == vocab.word_to_id('[STOP]'):
+                # 长度如果符合预期的话, 遇到句尾,添加到结果集
                 if steps >= params["min_dec_steps"]:  # decoder需要steps下限
                     results.append(h)
             else:
-                hyps.append(h)
+                hyps.append(h)  # 未到结尾, 把h添加到假设集
 
+            # 如果假设句子正好等于 beam_size 或者 结果集正好等于 beam_size 就不再添加
             if len(hyps) == params["beam_size"] or len(results) == params["beam_size"]:
                 break
         steps += 1
 
     if len(results) == 0:  results = hyps  # 如果没有合适结果，就把原 hyps 当作 results
 
-    # At the end of the loop, we return the most likely hypothesis, which holds the most likely output sequence,
-    # given the input fed to the model
+    # 循环结束后，对 most-likely 的 hyps进行排序，选出最可能的 best_hyps
     hyps_sorted = sorted(results, key=lambda h: h.avg_log_prob, reverse=True)
     best_hyp = hyps_sorted[0]
     # 摘要
