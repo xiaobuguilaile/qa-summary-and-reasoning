@@ -41,10 +41,8 @@ def build(train_x_seg_path, test_y_seg_path, test_seg_path, out_path=None, sente
     sentences = extract_sentence(train_x_seg_path, test_y_seg_path, test_seg_path)
     save_sentence(sentences, sentence_path)
     print('train w2v model...')
-    # train model
-    """
-    通过gensim工具完成word2vec的训练，输入格式采用sentences，使用skip-gram，embedding维度256
-    """
+
+    # 通过gensim工具完成word2vec的训练，输入格式采用sentences，使用skip-gram，embedding维度256
     w2v = Word2Vec(sg=1, sentences=LineSentence(sentence_path), size=256, window=5, min_count=min_count, iter=40)
     w2v.wv.save_word2vec_format(w2v_bin_path, binary=True)
     print("save %s ok." % w2v_bin_path)

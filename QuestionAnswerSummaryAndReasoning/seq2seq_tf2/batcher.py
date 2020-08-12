@@ -114,10 +114,10 @@ def output_to_words(id_list, vocab, article_oovs):
 def abstract_to_sents(abstract):
     """
     Splits abstract text from datafile into list of sentences.
-    Args:
-    abstract: string containing <s> and </s> tags for starts and ends of sentences
-    Returns:
-    sents: List of sentence strings (no tags)
+        Args:
+        abstract: string containing <s> and </s> tags for starts and ends of sentences
+        Returns:
+        sents: List of sentence strings (no tags)
     """
     cur = 0
     sents = []
@@ -133,6 +133,7 @@ def abstract_to_sents(abstract):
 
 def get_dec_inp_targ_seqs(sequence, max_len, start_id, stop_id):
     """
+    获取decoder层的输入和输出
     Given the reference summary as a sequence of tokens, return the input sequence for the decoder,
     and the target sequence which we will use to calculate loss. The sequence will be truncated if it is longer
     than max_len. The input sequence must start with the start_id and the target sequence must end with the stop_id
@@ -184,6 +185,7 @@ def example_generator(vocab, train_x_path, train_y_path, test_x_path, max_enc_le
             abstract_words = abstract.split()
             abs_ids = [vocab.word_to_id(w) for w in abstract_words]
             # abs_ids_extend_vocab = abstract_to_ids(abstract_words, vocab, article_oovs)
+            # 获取decoder的输入 和 输出
             dec_input, target = get_dec_inp_targ_seqs(abs_ids, max_dec_len, start_decoding, stop_decoding)
             # _, target = get_dec_inp_targ_seqs(abs_ids_extend_vocab, max_dec_len, start_decoding, stop_decoding)
 
@@ -233,14 +235,7 @@ def example_generator(vocab, train_x_path, train_y_path, test_x_path, max_enc_le
                 "sample_decoder_pad_mask": [],
                 "sample_encoder_pad_mask": sample_encoder_pad_mask,
             }
-            # print('output is ', output)
-            # if params["decode_mode"]=="beam":
-            #     for _ in range(params["batch_size"]):
-            #         yield output
-            # elif params["decode_mode"]=="greedy":
-            #     yield output
-            # for _ in range(batch_size):
-            #     yield output
+
             yield output
 
 
@@ -325,9 +320,15 @@ def batch_generator(generator, vocab, train_x_path, train_y_path,
 
 def batcher(vocab, hpm):
     """ 输出一个batch的数据集 """
-    dataset = batch_generator(example_generator, vocab, hpm["train_seg_x_dir"], hpm["train_seg_y_dir"],
-                              hpm["test_seg_x_dir"], hpm["max_enc_len"],
-                              hpm["max_dec_len"], hpm["batch_size"], hpm["mode"])
+    dataset = batch_generator(generator=example_generator,
+                              vocab=vocab,
+                              train_x_path=hpm["train_seg_x_dir"],
+                              train_y_path=hpm["train_seg_y_dir"],
+                              test_x_path=hpm["test_seg_x_dir"],
+                              max_enc_len=hpm["max_enc_len"],
+                              max_dec_len=hpm["max_dec_len"],
+                              batch_size=hpm["batch_size"],
+                              mode=hpm["mode"])
 
     return dataset
 

@@ -39,14 +39,16 @@ def main():
     parser.add_argument("--beam_size", default=3,
                         help="beam size for beam search decoding (must be equal to batch size in decode mode)",
                         type=int)
-    parser.add_argument("--vocab_size", default=30000, help="Vocabulary size", type=int)   # 次数上限，一般取30000 或 50000
+    # parser.add_argument("--vocab_size", default=30000, help="Vocabulary size", type=int)   # 次数上限，一般取30000 或 50000
+    parser.add_argument("--vocab_size", default=50000, help="Vocabulary size", type=int)   # 次数上限，一般取30000 或 50000
     parser.add_argument("--embed_size", default=256, help="Words embeddings dimension", type=int)
     parser.add_argument("--enc_units", default=256, help="Encoder GRU cell units number", type=int)
     parser.add_argument("--dec_units", default=256, help="Decoder GRU cell units number", type=int)
     parser.add_argument("--attn_units", default=256,
                         help="[context vector, decoder state, decoder input] feedforward result dimension - "
                              "this result is used to compute the attention weights", type=int)
-    parser.add_argument("--learning_rate", default=0.00001, help="Learning rate", type=float)
+    # parser.add_argument("--learning_rate", default=0.00001, help="Learning rate", type=float)
+    parser.add_argument("--learning_rate", default=0.001, help="Learning rate", type=float)
     parser.add_argument("--adagrad_init_acc", default=0.1,
                         help="Adagrad optimizer initial accumulator value. Please refer to the Adagrad optimizer "
                              "API documentation on tensorflow site for more details.", type=float)
@@ -82,7 +84,8 @@ def main():
     # parser.add_argument("--mode", default='train', help="training, eval or test options")  # 训练 train
     parser.add_argument("--mode", default='test', help="training, eval or test options")  # 测试 test
     parser.add_argument("--model", default='SequenceToSequence', help="which model to be slected")
-    parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")
+    # parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")  # greedy_search
+    parser.add_argument("--greedy_decode", default=False, help="beam_decoder")  # beam_search
 
     logger.info("Arguments set done!")
     args = parser.parse_args()

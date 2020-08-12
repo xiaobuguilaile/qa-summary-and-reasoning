@@ -59,9 +59,8 @@ def build_vocab(items, sort=True, min_count=0, lower=False):
         for i, item in enumerate(items):
             item = item if not lower else item.lower()
             result.append(item)
-    """
-    建立项目的vocab和reverse_vocab，vocab的结构是（词，index）
-    """
+
+    # 建立项目的vocab和reverse_vocab，vocab的结构是（词，index）
     vocab = [(w, i) for i, w in enumerate(result)]
     reverse_vocab = vocab[::-1]
 

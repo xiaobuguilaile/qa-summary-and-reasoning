@@ -91,24 +91,32 @@ def test(params):
     ckpt.restore(ckpt_manager.latest_checkpoint)
     # print("Model restored")
     logger.info("Model restored")
-    # for batch in batch_data:
-    #     yield batch_greedy_decode(model, batch, vocab, params)
-    if params['greedy_decode']:
+
+    # 通过 greedy_search 或 beam_search 预测结果
+    # if params['greedy_decode']:
         # params['batch_size'] = 512
-        predict_result(s2s_model, params, vocab, params['test_save_dir'])
+    predict_result(s2s_model, params, vocab, params['test_save_dir'])
+
+    # for batch in batch_data:
+    #     yield beam_decode(s2s_model, batch, vocab, params)
 
 
 def predict_result(model, params, vocab, result_save_path):
     """ 通过 greedy_deocde 预测test结果 """
     dataset = batcher(vocab, params)
     # 预测结果
-    results = greedy_decode(model, dataset, vocab, params)
+    if params['greedy_decode']:
+        results = greedy_decode(model, dataset, vocab, params)  # greedy_search获取结果
+    else:
+        results = beam_decode(model, dataset, vocab, params)  # beam_search获取结果
+
     results = list(map(lambda x: x.replace(" ", ""), results))
     # 保存结果
     save_predict_result(results, params)
 
 
 def save_predict_result(results, params):
+    """ 保存test结果到 """
     # 读取结果
     test_df = pd.read_csv(params['test_x_dir'])
     # 填充结果
@@ -137,6 +145,7 @@ def test_and_save(params):
 
 
 def evaluate(params):
+    """ 评价训练模型结果，以调参优化模型 """
     gen = test(params)
     reals = []
     preds = []
