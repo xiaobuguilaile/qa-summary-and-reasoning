@@ -6,3 +6,5 @@
 @Date       : 2020/8/11
 @Desc       :
 '''
+
+from .run_encoder import Encoder
