@@ -24,6 +24,7 @@ def train_model(model, dataset, params, ckpt, ckpt_manager):
         with tf.GradientTape() as tape:
             enc_output, enc_hidden = model.call_encoder(enc_inp)
             dec_hidden = enc_hidden
+            # 调用PGN的call()方法，得到
             outputs = model(enc_output,  # shape=(3, 200, 256)
                             dec_hidden,  # shape=(3, 256)
                             enc_inp,  # shape=(3, 200)

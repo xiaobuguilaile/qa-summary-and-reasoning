@@ -66,9 +66,9 @@ class PGN(tf.keras.Model):
                                                    enc_output=enc_output,
                                                    context_vector=context_vector)
             # 再次，调用 BahdanauAttentionCoverage的 call()方法
-            context_vector, attn_dist, coveratge_next = self.attention(dec_hidden=dec_hidden,
+            context_vector, attn_dist, coverage_next = self.attention(dec_hidden=dec_hidden,
                                                                        enc_output=enc_output,
-                                                                       enc_padding_mask=enc_padding_mask,
+                                                                       enc_padding_mask=enc_padding_mask, # batcher.py文件中判定
                                                                        use_coverage=use_coverage,
                                                                        prev_coverage=coverage_next)
             # 调用 Pointer 的 call() 方法, 获得 pgen 系数

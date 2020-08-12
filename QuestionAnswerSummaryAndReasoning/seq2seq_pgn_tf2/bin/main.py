@@ -81,7 +81,7 @@ def main():
     parser.add_argument("--max_num_to_eval", default=5, help="max_num_to_eval", type=int)
     parser.add_argument("--epochs", default=20, help="train epochs", type=int)
 
-    # transformer (PGN新增的部分)
+    # transformer
     parser.add_argument("--d_model", default=512, type=int, help="hidden dimension of encoder/decoder")
     parser.add_argument("--num_blocks", default=6, type=int, help="number of encoder/decoder blocks")
     parser.add_argument("--num_heads", default=8, type=int, help="number of attention heads")
@@ -94,6 +94,9 @@ def main():
     parser.add_argument("--model", default='PGN', help="which model to be slected")
     parser.add_argument("--greedy_decode", default=False, help="greedy_decoder")  # beam_search
     parser.add_argument("--transformer", default=False, help="transformer")  #
+
+    # PGN
+    parser.add_argument("--is_coverage", default=True, help="is_coverage")
 
     logger.info("Arguments set done!")
     args = parser.parse_args()
@@ -117,7 +120,7 @@ def main():
 
 if __name__ == '__main__':
 
-    logger.add(BASE_DIR + "/seq2seq_tf2/log/seq2seq_tf2_training_{time}.log",
+    logger.add(BASE_DIR + "/seq2seq_pgn_tf2/log/seq2seq_pgn_tf2_training_{time}.log",
                format="{time} {level} {message}",
                level="INFO",
                rotation="100 MB")

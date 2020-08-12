@@ -19,10 +19,11 @@ def calc_final_dist(_enc_batch_extend_vocab, vocab_dists, attn_dists, p_gens, ba
     vocab_dists: The vocabulary distributions. List length max_dec_steps of (batch_size, vsize) arrays.
                 The words are in the order they appear in the vocabulary file.
     attn_dists: The attention distributions. List length max_dec_steps of (batch_size, attn_len) arrays
+    batch_oov_len: 每个batch中超出 vocab_size 的OOV的个数
     Returns:
     final_dists: The final distributions. List length max_dec_steps of (batch_size, extended_vsize) arrays.
     """
-    # vocab_dists 和 attn_dists 分别乘以相应的系数
+    # vocab_dists 和 attn_dists 分别乘以相应的系数（p_gen是个list，且list中每个值都一样)
     vocab_dists = [p_gen * dist for (p_gen, dist) in zip(p_gens, vocab_dists)]
     attn_dists = [(1 - pgen) * dist for (pgen, dist) in zip(p_gens, attn_dists)]
 

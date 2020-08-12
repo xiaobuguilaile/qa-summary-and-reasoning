@@ -50,6 +50,8 @@ class BahdanauAttentionCoverage(tf.keras.layers.Layer):
             score = self.V(tf.nn.tanh(self.W_h(enc_output) + self.W_s(dec_hidden_with_time_axis) + self.W_c(prev_coverage)))
             attn_dist = masked_attention(score)  # 获得注意力分布
             coverage = attn_dist + prev_coverage  # 更新coverage参数
+
+        # 不用coverage 或者 coverage第一步初始化
         else:
             # 计算 v^T tanh(W_h h_i + W_s s_t + b_attn)
             score = self.V(tf.nn.tanh(self.W_h(enc_output) + self.W_s(dec_hidden_with_time_axis)))

@@ -21,7 +21,7 @@ def loss_function(real, outputs, padding_mask, cov_loss_wt, use_converage):
     attn_dists = outputs["attentions"]
 
     if use_converage:  # 如果使用coverage机制
-        # PGN的损失函数
+        # PGN的损失函数 （其中 _coverage_loss 需要的是 α 和 c, c又是α的加和）
         loss = pgn_log_loss_function(real, pred, padding_mask) + cov_loss_wt * _coverage_loss(attn_dists, padding_mask)
         return loss
     else:
@@ -73,7 +73,7 @@ def _mask_and_avg(loss_per_step, padding_mask):
     """
     padding_mask = tf.cast(padding_mask, dtype=loss_per_step[0].dtype)
     dec_lens = tf.reduce_sum(input_tensor=padding_mask, axis=1)
-    values_per_step = [v * padding_mask[:, dec_step] for dec_step, v in enumerate(dec_lens)]
+    values_per_step = [v * padding_mask[:, dec_step] for dec_step, v in enumerate(loss_per_step)]
     # normalized value for each batch member
     values_per_ex = sum(values_per_step) / dec_lens
 
