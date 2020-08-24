@@ -73,6 +73,10 @@ def test(params):
         yield beam_decode(model, batch, vocab, params)
 
 
+def evaluate(params):
+    pass
+
+
 def test_and_save(params):
     assert params["test_save_dir"], "provide a dir where to save the results"
     gen = test(params)
@@ -88,6 +92,11 @@ def test_and_save(params):
 def predict_result(params):
     # 预测结果
     results = test_and_save(params)
+
+    # with open("f200_result.csv", 'w', encoding='utf-8') as fw:
+    #     for i, res in enumerate(results):
+    #         fw.write(str(res)+"\n")
+
     # 保存结果
     save_predict_result(results, params)
 
@@ -96,7 +105,8 @@ def save_predict_result(results, params):
     # 读取结果
     test_df = pd.read_csv(params['test_x_dir'])
     # 填充结果
-    test_df['Prediction'] = results[:20000]
+    test_df['Prediction'] = results
+    # test_df['Prediction'] = results[:20000]
     # 提取ID和预测结果两列
     test_df = test_df[['QID', 'Prediction']]
     # 保存结果.

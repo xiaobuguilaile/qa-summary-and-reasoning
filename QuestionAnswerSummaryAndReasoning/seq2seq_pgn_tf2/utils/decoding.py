@@ -51,6 +51,7 @@ def calc_final_dist(_enc_batch_extend_vocab, vocab_dists, attn_dists, p_gens, ba
     return final_dists
 
 
+
 if __name__ == '__main__':
 
     # nums = tf.constant([1,2])

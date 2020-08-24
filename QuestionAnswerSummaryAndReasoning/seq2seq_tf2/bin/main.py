@@ -84,8 +84,8 @@ def main():
     # parser.add_argument("--mode", default='train', help="training, eval or test options")  # 训练 train
     parser.add_argument("--mode", default='test', help="training, eval or test options")  # 测试 test
     parser.add_argument("--model", default='SequenceToSequence', help="which model to be slected")
-    # parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")  # greedy_search
-    parser.add_argument("--greedy_decode", default=False, help="beam_decoder")  # beam_search
+    parser.add_argument("--greedy_decode", default=True, help="greedy_decoder")  # greedy_search
+    # parser.add_argument("--greedy_decode", default=False, help="beam_decoder")  # beam_search
 
     logger.info("Arguments set done!")
     args = parser.parse_args()
@@ -103,6 +103,7 @@ def main():
     elif params["mode"] == "eval":
         evaluate(params)
     elif params["mode"] == "test":
+        logger.info("start test mode ... ")
         # params["batch_size"] = params["beam_size"]
         test(params)
 

@@ -50,7 +50,7 @@ class PGN(tf.keras.Model):
         predictions, attentions, coverages, p_gens = [], [], [], []
 
         # 通过调用attention,得到decoder第一步所需的context_vector，coverage等值
-        # 调用了 BahdanauAttention的 call()方法
+        # 调用了 BahdanauAttentionCoverage的 call()方法
         context_vector, attn_dist, coverage_next = self.attention(dec_hidden=dec_hidden,  # (16, 256)
                                                      enc_output=enc_output,  # (16, 200, 256)
                                                      enc_padding_mask=enc_padding_mask,  # (16, 200)
@@ -60,7 +60,7 @@ class PGN(tf.keras.Model):
         for t in range(dec_inp.shape[1]):
             ###  Teachering Forcing
 
-            # 调用 Decoder的 call() 方法， 获得预测结果 pred，decoder的隐层dec_hidden
+            # 调用 Decoder的 call() 方法，获得预测结果 pred，decoder的隐层dec_hidden
             dec_x, pred, dec_hidden = self.decoder(input_x=tf.expand_dims(input=dec_inp[:, t], axis=1),
                                                    dec_hidden=dec_hidden,
                                                    enc_output=enc_output,

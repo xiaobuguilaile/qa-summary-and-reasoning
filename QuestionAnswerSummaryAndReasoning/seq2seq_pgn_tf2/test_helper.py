@@ -138,11 +138,11 @@ def beam_decode(model, batch, vocab, params):
                                  params['is_coverage'],  # true
                                  prev_coverage=None)  # shape=(3, 115, 1)
         topk_ids, topk_log_probs, new_states, attn_dists, p_gens, new_coverage= returns['top_k_ids'],\
-                                                                    returns['top_k_log_probs'],\
-                                                                                   returns['dec_state'],\
-                                                                                   returns['attention_vec'],\
-                                                                                   returns["p_gen"],\
-                                                                                       returns['coverages']
+                                                                                returns['top_k_log_probs'],\
+                                                                                returns['dec_state'],\
+                                                                                returns['attention_vec'],\
+                                                                                returns["p_gen"],\
+                                                                                returns['coverages']
         all_hyps = []
         num_orig_hyps = 1 if steps == 0 else len(hyps)
         num = 1

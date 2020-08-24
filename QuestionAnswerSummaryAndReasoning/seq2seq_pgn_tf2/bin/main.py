@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 sys.path.append(BASE_DIR)
 import tensorflow as tf
 import argparse
-from QuestionAnswerSummaryAndReasoning.seq2seq_tf2.train_eval_test import train, test, evaluate
+from QuestionAnswerSummaryAndReasoning.seq2seq_pgn_tf2.train_eval_test import train, test, evaluate, predict_result
 from QuestionAnswerSummaryAndReasoning.utils.data_utils import get_result_filename
 # from utils.log_utils import define_logger
 import pathlib
@@ -61,7 +61,7 @@ def main():
     # /ckpt/checkpoint/checkpoint
     parser.add_argument("--seq2seq_model_dir", default='{}/ckpt/seq2seq'.format(BASE_DIR), help="Model folder")
     parser.add_argument("--pgn_model_dir", default='{}/ckpt/pgn'.format(BASE_DIR), help="Model folder")
-    parser.add_argument("--model_path", help="Path to a specific model", default="", type=str)
+    parser.add_argument("--model_path", default="", help="Path to a specific model", type=str)
     parser.add_argument("--train_seg_x_dir", default='{}/data/train_set.seg_x.txt'.format(BASE_DIR), help="train_seg_x_dir")
     parser.add_argument("--train_seg_y_dir", default='{}/data/train_set.seg_y.txt'.format(BASE_DIR), help="train_seg_y_dir")
     parser.add_argument("--test_seg_x_dir", default='{}/data/test_set.seg_x.txt'.format(BASE_DIR), help="test_seg_x_dir")
@@ -72,8 +72,7 @@ def main():
     parser.add_argument("--test_x_dir", default='{}/data/AutoMaster_TestSet.csv'.format(BASE_DIR), help="test_x_dir")
 
     # others
-    # parser.add_argument("--steps_per_epoch", default=1300, help="max_train_steps", type=int)
-    parser.add_argument("--steps_per_epoch", default=8087, help="max_train_steps", type=int)
+    parser.add_argument("--steps_per_epoch", default=1300, help="max_train_steps", type=int)
     parser.add_argument("--checkpoints_save_steps", default=10, help="Save checkpoints every N steps", type=int)
     parser.add_argument("--max_steps", default=10000, help="Max number of iterations", type=int)
     # parser.add_argument("--num_to_test", default=10, help="Number of examples to test", type=int)
@@ -89,8 +88,8 @@ def main():
     parser.add_argument("--dropout_rate", default=0.1, type=float)
 
     # mode
-    parser.add_argument("--mode", default='train', help="training, eval or test options")  # 训练 train
-    # parser.add_argument("--mode", default='test', help="training, eval or test options")  # 测试 test
+    # parser.add_argument("--mode", default='train', help="training, eval or test options")  # 训练 train
+    parser.add_argument("--mode", default='test', help="training, eval or test options")  # 测试 test
     parser.add_argument("--model", default='PGN', help="which model to be slected")
     parser.add_argument("--greedy_decode", default=False, help="greedy_decoder")  # beam_search
     parser.add_argument("--transformer", default=False, help="transformer")  #
@@ -109,18 +108,22 @@ def main():
 
     # mode识别
     if params["mode"] == "train":
-        params["steps_per_epoch"] = NUM_SAMPLES // params["batch_size"]
+        logger.info("start train mode ...")
+        params["steps_per_epoch"] = NUM_SAMPLES // params["batch_size"]  # 1292，上面的 params["steps_per_epoch"] 没用
         train(params)
     elif params["mode"] == "eval":
         evaluate(params)
     elif params["mode"] == "test":
+        logger.info("start test mode ...")
         # params["batch_size"] = params["beam_size"]
-        test(params)
+        # test(params)
+        params["batch_size"] = params["beam_size"]
+        predict_result(params)
 
 
 if __name__ == '__main__':
 
-    logger.add(BASE_DIR + "/seq2seq_pgn_tf2/log/seq2seq_pgn_tf2_training_{time}.log",
+    logger.add(BASE_DIR + "/seq2seq_pgn_tf2/log/seq2seq_pgn_tf2_testing_{time}.log",
                format="{time} {level} {message}",
                level="INFO",
                rotation="100 MB")
