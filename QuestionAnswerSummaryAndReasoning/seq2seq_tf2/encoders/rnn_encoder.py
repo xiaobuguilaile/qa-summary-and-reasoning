@@ -12,8 +12,7 @@ import tensorflow as tf
 
 class Encoder(tf.keras.layers.Layer):
 
-    def __init__(self, vocab_size, embedding_dim,
-                 enc_units, batch_sz, embedding_matrix):
+    def __init__(self, vocab_size, embedding_dim, enc_units, batch_sz, embedding_matrix):
         """
         vocab_size: 选取词表的词数，即所有词库单词个数
         embedding_size: 输入样本句子的维度（vocab_size, embedding_dim）

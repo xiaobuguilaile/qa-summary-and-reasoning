@@ -12,8 +12,7 @@ import tensorflow as tf
 
 class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
     """
-    可变化学习率
-      - 学习率先升高，再降低
+    可变化学习率（warm up机制）： lr先快速线性/非线性升高，再非线性的缓慢下降
     """
     def __init__(self, d_model, warmup_steps=4000):
         super(CustomSchedule, self).__init__()

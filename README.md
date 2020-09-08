@@ -1,4 +1,5 @@
-# qa-summary-and-reasoning 问答摘要与推理
+# qa-summary-and-reasoning 
+基于 tensorflow 2.0 实现的多版本 “问答摘要与推理” 任务
 
 ### 本项目源自 百度AI Studio竞赛的常规赛项目
 

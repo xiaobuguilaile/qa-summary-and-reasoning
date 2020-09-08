@@ -115,7 +115,7 @@ class PGNTransformer(tf.keras.Model):
                                params["dff"],
                                params["vocab_size"],
                                params["dropout_rate"])
-        # 接一个FFN层 + softmax() 输出每个词对应的概率
+        # 接一个FC层 + softmax() 输出每个词对应的概率
         self.final_layer = tf.keras.layers.Dense(units=params["vocab_size"])
 
     def call(self, inp, extended_inp, max_oov_len, tar, training, enc_padding_mask, look_ahead_mask, dec_padding_mask):
@@ -137,7 +137,7 @@ class PGNTransformer(tf.keras.Model):
         # shape: (batch_size, targ_seq_len, inp_seq_len)
         attn_dists = tf.reduce_sum(attn_dists, axis=1) / self.params["num_heads"]
 
-        # 获取 PGN构架下 词向量的的最终分布结果
+        # 获取 PGN构架下 词向量的的最终分布结果。calc_final_dist跟PGN网络的一样，没有变化
         final_dists = calc_final_dist(extended_inp,
                                       tf.unstack(final_output, axis=1),
                                       tf.unstack(attn_dists, axis=1),
