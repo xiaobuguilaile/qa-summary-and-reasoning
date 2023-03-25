@@ -1,4 +1,4 @@
 python==3.6.2
-tensorflow==2.3.0
+tensorflow==2.11.1
 loguru==0.4.1
 rouge==1.0.0
